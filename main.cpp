@@ -19,7 +19,7 @@
 #define WINDOW_WIDTH  800
 #define WINDOW_HEIGHT 600
 
-#define MAX_PARTICLES 1
+#define MAX_PARTICLES 3
 #define GRAVITY 0.1
 
 #define PADDLE_WIDTH 100
@@ -47,21 +47,26 @@ struct Particle {
 	Vec velocity;
 };
 
-struct Game {
-	Shape paddle;
-	Particle particle;
-	int n;
+class Game {
+	public:
+		static Shape paddle;
+		static Particle ball;
+		static int n;
 };
+Shape Game::paddle;
+Particle Game::ball;
+int Game::n;
 
 //Function prototypes
 void initXWindows(void);
 void init_opengl(void);
 void cleanupXWindows(void);
-void check_mouse(XEvent *e, Game *game);
-int check_keys(XEvent *e, Game *game);
-void movement(Game *game);
-void render(Game *game);
+void check_mouse(XEvent *e);
+int check_keys(XEvent *e);
+void movement();
+void render();
 bool isInShape(Shape &shape, float x, float y, float z=0, bool square=true, bool inclusive=true);
+void checkCollision();
 
 int main(void) {
 	int done=0;
@@ -69,25 +74,24 @@ int main(void) {
 	initXWindows();
 	init_opengl();
 	//declare game object
-	Game game;
-	game.n=0;
+	Game::n=0;
 
 	//declare the paddle
-	game.paddle.width = PADDLE_WIDTH;
-	game.paddle.height = PADDLE_HEIGHT;
-	game.paddle.center.x = 120 + 5*65;
-	game.paddle.center.y = PADDLE_BUFFER + (0.5 * PADDLE_HEIGHT) ;
+	Game::paddle.width = PADDLE_WIDTH;
+	Game::paddle.height = PADDLE_HEIGHT;
+	Game::paddle.center.x = 120 + 5*65;
+	Game::paddle.center.y = PADDLE_BUFFER + (0.5 * PADDLE_HEIGHT) ;
 
 	//start animation
 	while (!done) {
 		while (XPending(dpy)) {
 			XEvent e;
 			XNextEvent(dpy, &e);
-			check_mouse(&e, &game);
-			done = check_keys(&e, &game);
+			check_mouse(&e);
+			done = check_keys(&e);
 		}
-		movement(&game);
-		render(&game);
+		movement();
+		render();
 		glXSwapBuffers(dpy, win);
 	}
 	cleanupXWindows();
@@ -146,24 +150,24 @@ void init_opengl(void) {
 	glClearColor(0.1, 0.1, 0.1, 1.0);
 }
 
-void makeParticle(Game *game, int x, int y) {
-	if (game->n >= MAX_PARTICLES){
+void makeParticle(int x, int y) {
+	if (Game::n >= MAX_PARTICLES){
 		return;
-	}else if(isInShape(game->paddle, x, y)){
+	}else if(isInShape(Game::paddle, x, y)){
 		std::cout << "makeParticle() cursor is inside box" << std::endl;
 		return;
 	}
 	std::cout << "makeParticle() " << x << " " << y << std::endl;
 	//position of particle
-	Particle *p = &game->particle;
+	Particle *p = &Game::ball;
 	p->s.center.x = x;
 	p->s.center.y = y;
 	p->velocity.y = -4.0;
 	p->velocity.x =  1.0;
-	game->n++;
+	Game::n += 1;
 }
 
-void check_mouse(XEvent *e, Game *game) {
+void check_mouse(XEvent *e) {
 	static int savex = 0;
 	static int savey = 0;
 	static int n = 0;
@@ -180,7 +184,7 @@ void check_mouse(XEvent *e, Game *game) {
 		if (e->xbutton.button==1) {
 			//Left button was pressed
 			int y = WINDOW_HEIGHT - e->xbutton.y;
-			makeParticle(game, e->xbutton.x, y);
+			makeParticle(e->xbutton.x, y);
 			return;
 		}
 		if (e->xbutton.button==3) {
@@ -197,7 +201,7 @@ void check_mouse(XEvent *e, Game *game) {
 	}
 }
 
-int check_keys(XEvent *e, Game *game) {
+int check_keys(XEvent *e) {
 	//Was there input from the keyboard?
 	if (e->type == KeyPress) {
 		int key = XLookupKeysym(&e->xkey, 0);
@@ -212,13 +216,13 @@ int check_keys(XEvent *e, Game *game) {
 	return 0;
 }
 
-void movement(Game *game) {
+void movement() {
 	Particle *p;
 
-	if (game->n <= 0)
+	if (Game::n <= 0)
 		return;
 
-	p = &game->particle;
+	p = &Game::ball;
 	p->s.center.x += p->velocity.x;
 	p->s.center.y += p->velocity.y;
 
@@ -228,11 +232,11 @@ void movement(Game *game) {
 	//check for off-screen
 	if (p->s.center.y < 0.0) {
 		std::cout << "off screen" << std::endl;
-		game->n = 0;
+		Game::n = 0;
 	}
 }
 
-void render(Game *game) {
+void render() {
 	float w, h;
 	glClear(GL_COLOR_BUFFER_BIT);
 	//Draw shapes...
@@ -240,7 +244,7 @@ void render(Game *game) {
 	//draw box
 	Shape *s;
 	glColor3ub(90,140,90);
-	s = &game->paddle;
+	s = &Game::paddle;
 	glPushMatrix();
 	glTranslatef(s->center.x, s->center.y, s->center.z);
 	w = s->width;
@@ -256,7 +260,7 @@ void render(Game *game) {
 	//draw all particles here
 	glPushMatrix();
 	glColor3ub(150,160,220);
-	Vec *c = &game->particle.s.center;
+	Vec *c = &Game::ball.s.center;
 	w = 2;
 	h = 2;
 	glBegin(GL_QUADS);
@@ -309,4 +313,7 @@ bool isInShape(Shape &shape, float x, float y, float z, bool square, bool inclus
 		//TODO
 		return false;
 	}
+}
+void checkCollision(){
+
 }
