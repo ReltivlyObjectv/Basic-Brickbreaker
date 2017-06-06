@@ -16,102 +16,18 @@
 #include <X11/keysym.h>
 #include <GL/glx.h>
 #include <list>
+#include "Game.h"
 
 #define WINDOW_WIDTH  800
 #define WINDOW_HEIGHT 600
 
-#define MAX_PARTICLES 3
 #define GRAVITY 0
-
-#define PADDLE_WIDTH 100
-#define PADDLE_HEIGHT 10
-#define PADDLE_BUFFER 10
 
 //X Windows variables
 Display *dpy;
 Window win;
 GLXContext glc;
 
-//Structures
-struct Vec {
-	float x, y, z;
-};
-
-struct Shape {
-	float width, height;
-	float radius;
-	Vec center;
-};
-
-struct Particle {
-	Shape s;
-	Vec velocity;
-};
-
-class Game {
-	private: 
-		static Shape paddle;
-		static std::list<Particle*> balls;
-		static std::list<Shape*> allBoxes;
-	public:
-		static void initialize();
-		static int getBallCount();
-		static Shape* getPaddle();
-		static std::list<Particle*>::iterator getBallIterator();
-		static std::list<Particle*>::iterator getLastBallIterator();
-		static std::list<Shape*>::iterator getShapesIterator();
-		static std::list<Shape*>::iterator getLastShapesIterator();
-		static void makeParticle();
-		static void removeParticle(Particle* p);
-};
-Shape Game::paddle;
-std::list<Particle*> Game::balls;
-std::list<Shape*> Game::allBoxes;
-
-void Game::initialize(){
-	//declare the paddle
-	paddle.width = PADDLE_WIDTH;
-	paddle.height = PADDLE_HEIGHT;
-	paddle.center.x = 120 + 5*65;
-	paddle.center.y = PADDLE_BUFFER + (0.5 * PADDLE_HEIGHT) ;
-	allBoxes.push_front(&paddle);
-}
-Shape* Game::getPaddle(){
-	return &paddle;
-}
-std::list<Particle*>::iterator Game::getBallIterator(){
-	return balls.begin();
-}
-std::list<Particle*>::iterator Game::getLastBallIterator(){
-	return balls.end();
-}
-std::list<Shape*>::iterator Game::getShapesIterator(){
-	return allBoxes.begin();
-}
-std::list<Shape*>::iterator Game::getLastShapesIterator(){
-	return allBoxes.end();
-}
-int Game::getBallCount(){
-	return balls.size();
-}
-void Game::makeParticle() {
-	if (getBallCount() >= MAX_PARTICLES){
-		std::cout << "Could not create particle" << std::endl;
-		return;
-	}
-	//position of particle
-	Particle *p = new Particle();
-	std::cout << "Creating particle " << p << std::endl;
-	p->s.center.x = Game::getPaddle()->center.x;
-	p->s.center.y = Game::getPaddle()->center.y + (Game::getPaddle()->height / 2);
-	p->velocity.y = 4.0;
-	p->velocity.x = 1.0;
-	balls.push_front(p);
-}
-void Game::removeParticle(Particle* p){
-	std::cout << "Out of bounds - removing particle " << p << std::endl;
-	balls.remove(p);
-}
 
 //Function prototypes
 void initXWindows(void);
