@@ -15,6 +15,7 @@
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <GL/glx.h>
+#include <list>
 
 #define WINDOW_WIDTH  800
 #define WINDOW_HEIGHT 600
@@ -50,18 +51,16 @@ struct Particle {
 class Game {
 	private: 
 		static Shape paddle;
-		static Particle ball;
-		static int n;
+		static std::list<Particle*> balls;
 	public:
 		static void initialize();
 		static int getBallCount();
-		static void setBallCount(int newAmount);
 		static Shape* getPaddle();
-		static Particle* getBall();
+		static std::list<Particle*>::iterator getBallIterator();
+		static void makeParticle();
 };
 Shape Game::paddle;
-Particle Game::ball;
-int Game::n = 0;
+std::list<Particle*> Game::balls;
 
 void Game::initialize(){
 	//declare the paddle
@@ -74,14 +73,23 @@ void Game::initialize(){
 Shape* Game::getPaddle(){
 	return &paddle;
 }
-void Game::setBallCount(int newAmount){
-	n = newAmount;
-}
-Particle* Game::getBall(){
-	return &ball;
+std::list<Particle*>::iterator Game::getBallIterator(){
+	return balls.begin();
 }
 int Game::getBallCount(){
-	return n;
+	return balls.size();
+}
+void Game::makeParticle() {
+	if (getBallCount() >= MAX_PARTICLES){
+		return;
+	}
+	//position of particle
+	Particle *p = new Particle();
+	p->s.center.x = Game::getPaddle()->center.x;
+	p->s.center.y = Game::getPaddle()->center.y;
+	p->velocity.y = 4.0;
+	p->velocity.x = 1.0;
+	balls.push_front(p);
 }
 
 //Function prototypes
@@ -170,19 +178,6 @@ void init_opengl(void) {
 	glClearColor(0.1, 0.1, 0.1, 1.0);
 }
 
-void makeParticle(int x, int y) {
-	if (Game::getBallCount() >= MAX_PARTICLES){
-		return;
-	}
-	std::cout << "makeParticle() " << x << " " << y << std::endl;
-	//position of particle
-	Particle *p = Game::getBall();
-	p->s.center.x = x;
-	p->s.center.y = y;
-	p->velocity.y = -4.0;
-	p->velocity.x =  1.0;
-	Game::setBallCount(Game::getBallCount() + 1);
-}
 
 void check_mouse(XEvent *e) {
 	static int savex = 0;
@@ -192,8 +187,7 @@ void check_mouse(XEvent *e) {
 	if (e->type == ButtonPress) {
 		if (e->xbutton.button==1) {
 			//Left button was pressed
-			int y = WINDOW_HEIGHT - e->xbutton.y;
-			makeParticle(e->xbutton.x, y);
+			Game::makeParticle();
 			return;
 		}
 		if (e->xbutton.button==3) {
@@ -231,22 +225,19 @@ int check_keys(XEvent *e) {
 }
 
 void movement() {
-	Particle *p;
-
 	if (Game::getBallCount() <= 0)
 		return;
+	std::list<Particle*>::iterator it = Game::getBallIterator();
+	for(int i = 0; i < Game::getBallCount(); i++, it++){
+		Particle *p = *it;
+		p->s.center.x += p->velocity.x;
+		p->s.center.y += p->velocity.y;
 
-	p = Game::getBall();
-	p->s.center.x += p->velocity.x;
-	p->s.center.y += p->velocity.y;
-
-	//check for collision with shapes...
-	//Shape *s;
-
-	//check for off-screen
-	if (p->s.center.y < 0.0) {
-		std::cout << "off screen" << std::endl;
-		Game::setBallCount(0);
+		//check for collision with shapes...
+		//check for off-screen
+		if (p->s.center.y < 0.0) {
+			std::cout << "off screen" << std::endl;
+		}
 	}
 }
 
@@ -272,18 +263,21 @@ void render() {
 	glPopMatrix();
 
 	//draw all particles here
-	glPushMatrix();
-	glColor3ub(150,160,220);
-	Vec *c = &(Game::getBall()->s.center);
-	w = 2;
-	h = 2;
-	glBegin(GL_QUADS);
+	std::list<Particle*>::iterator it = Game::getBallIterator();
+	for(int i = 0; i < Game::getBallCount(); i++, it++){
+		glPushMatrix();
+		glColor3ub(150,160,220);
+		Vec *c = &((*it)->s.center);
+		w = 2;
+		h = 2;
+		glBegin(GL_QUADS);
 		glVertex2i(c->x-w, c->y-h);
 		glVertex2i(c->x-w, c->y+h);
 		glVertex2i(c->x+w, c->y+h);
 		glVertex2i(c->x+w, c->y-h);
-	glEnd();
-	glPopMatrix();
+		glEnd();
+		glPopMatrix();
+	}
 }
 
 
