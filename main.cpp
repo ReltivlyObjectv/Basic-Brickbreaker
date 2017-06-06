@@ -47,6 +47,7 @@ int main(void) {
 	init_opengl();
 	//Initialize game
 	Game::initialize();
+	Game::loadLevel("1.level");
 	//start animation
 	while (!done) {
 		while (XPending(dpy)) {
@@ -66,7 +67,7 @@ int main(void) {
 void set_title(void) {
 	//Set the window title bar.
 	XMapWindow(dpy, win);
-	XStoreName(dpy, win, "335 Lab1   LMB for particle");
+	XStoreName(dpy, win, "Brick Breaker");
 }
 
 void cleanupXWindows(void) {
@@ -210,7 +211,24 @@ void render() {
 	float w, h;
 	glClear(GL_COLOR_BUFFER_BIT);
 	//Draw shapes...
-
+	for(std::list<Shape*>::iterator its = Game::getShapesIterator(); its != Game::getLastShapesIterator(); its++){
+		if(*its != Game::getPaddle()){
+			BreakableBlock* b = (BreakableBlock*) (*its);
+			ColorBox bColors= b->getColors();
+			glPushMatrix();
+			glColor3ub(bColors.r,bColors.b,bColors.g);
+			glTranslatef(b->center.x, b->center.y, b->center.z);
+			w = b->width;
+			h = b->height;
+			glBegin(GL_QUADS);
+			glVertex2i(-w,-h);
+			glVertex2i(-w, h);
+			glVertex2i( w, h);
+			glVertex2i( w,-h);
+			glEnd();
+			glPopMatrix();
+		}
+	}
 	//draw box
 	Shape *s;
 	glColor3ub(90,140,90);

@@ -7,6 +7,7 @@
 Shape Game::paddle;
 std::list<Particle*> Game::balls;
 std::list<Shape*> Game::allBoxes;
+Level Game::currentLevel;
 
 //Game Member Functions
 void Game::initialize(){
@@ -16,8 +17,6 @@ void Game::initialize(){
 	paddle.center.x = 120 + 5*65;
 	paddle.center.y = PADDLE_BUFFER + (0.5 * PADDLE_HEIGHT) ;
 	allBoxes.push_front(&paddle);
-	//Load first level
-	getLevel("1.level");
 }
 Shape* Game::getPaddle(){
 	return &paddle;
@@ -55,7 +54,7 @@ void Game::removeParticle(Particle* p){
 	std::cout << "Out of bounds - removing particle " << p << std::endl;
 	balls.remove(p);
 }
-Level Game::getLevel(std::string levelName){
+void Game::loadLevel(std::string levelName){
 	Level newLevel;
 	std::ifstream levelFile;
 	levelFile.open(levelName.c_str());
@@ -120,9 +119,13 @@ Level Game::getLevel(std::string levelName){
 		newBlock->center.y = std::stof(y);
 		newBlock->setColors(std::stoi(red),std::stoi(green),std::stoi(blue));	
 
-		newLevel.blocks.push_back(newBlock);}
-
-	return newLevel;
+		newLevel.blocks.push_back(newBlock);
+	}
+	levelFile.close();
+	currentLevel = newLevel;
+	for(std::list<BreakableBlock*>::iterator it = newLevel.blocks.begin(); it != newLevel.blocks.end(); it++){
+		allBoxes.push_back((Shape*) *it);
+	}
 }
 
 //Breakable Block Member Functions

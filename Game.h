@@ -46,6 +46,7 @@ class Game {
 		static Shape paddle;
 		static std::list<Particle*> balls;
 		static std::list<Shape*> allBoxes;
+		static Level currentLevel;
 	public:
 		static void initialize();
 		static int getBallCount();
@@ -56,6 +57,6 @@ class Game {
 		static std::list<Shape*>::iterator getLastShapesIterator();
 		static void makeParticle();
 		static void removeParticle(Particle* p);
-		static Level getLevel(std::string levelName);
+		static void loadLevel(std::string levelName);
 };
 #endif
