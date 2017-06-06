@@ -48,14 +48,41 @@ struct Particle {
 };
 
 class Game {
-	public:
+	private: 
 		static Shape paddle;
 		static Particle ball;
 		static int n;
+	public:
+		static void initialize();
+		static int getBallCount();
+		static void setBallCount(int newAmount);
+		static Shape* getPaddle();
+		static Particle* getBall();
 };
 Shape Game::paddle;
 Particle Game::ball;
-int Game::n;
+int Game::n = 0;
+
+void Game::initialize(){
+	//declare the paddle
+	Game::getPaddle()->width = PADDLE_WIDTH;
+	Game::getPaddle()->height = PADDLE_HEIGHT;
+	Game::getPaddle()->center.x = 120 + 5*65;
+	Game::getPaddle()->center.y = PADDLE_BUFFER + (0.5 * PADDLE_HEIGHT) ;
+	
+}
+Shape* Game::getPaddle(){
+	return &paddle;
+}
+void Game::setBallCount(int newAmount){
+	n = newAmount;
+}
+Particle* Game::getBall(){
+	return &ball;
+}
+int Game::getBallCount(){
+	return n;
+}
 
 //Function prototypes
 void initXWindows(void);
@@ -73,15 +100,8 @@ int main(void) {
 	srand(time(NULL));
 	initXWindows();
 	init_opengl();
-	//declare game object
-	Game::n=0;
-
-	//declare the paddle
-	Game::paddle.width = PADDLE_WIDTH;
-	Game::paddle.height = PADDLE_HEIGHT;
-	Game::paddle.center.x = 120 + 5*65;
-	Game::paddle.center.y = PADDLE_BUFFER + (0.5 * PADDLE_HEIGHT) ;
-
+	//Initialize game
+	Game::initialize();
 	//start animation
 	while (!done) {
 		while (XPending(dpy)) {
@@ -151,20 +171,17 @@ void init_opengl(void) {
 }
 
 void makeParticle(int x, int y) {
-	if (Game::n >= MAX_PARTICLES){
-		return;
-	}else if(isInShape(Game::paddle, x, y)){
-		std::cout << "makeParticle() cursor is inside box" << std::endl;
+	if (Game::getBallCount() >= MAX_PARTICLES){
 		return;
 	}
 	std::cout << "makeParticle() " << x << " " << y << std::endl;
 	//position of particle
-	Particle *p = &Game::ball;
+	Particle *p = Game::getBall();
 	p->s.center.x = x;
 	p->s.center.y = y;
 	p->velocity.y = -4.0;
 	p->velocity.x =  1.0;
-	Game::n += 1;
+	Game::setBallCount(Game::getBallCount() + 1);
 }
 
 void check_mouse(XEvent *e) {
@@ -219,10 +236,10 @@ int check_keys(XEvent *e) {
 void movement() {
 	Particle *p;
 
-	if (Game::n <= 0)
+	if (Game::getBallCount() <= 0)
 		return;
 
-	p = &Game::ball;
+	p = Game::getBall();
 	p->s.center.x += p->velocity.x;
 	p->s.center.y += p->velocity.y;
 
@@ -232,7 +249,7 @@ void movement() {
 	//check for off-screen
 	if (p->s.center.y < 0.0) {
 		std::cout << "off screen" << std::endl;
-		Game::n = 0;
+		Game::setBallCount(0);
 	}
 }
 
@@ -244,7 +261,7 @@ void render() {
 	//draw box
 	Shape *s;
 	glColor3ub(90,140,90);
-	s = &Game::paddle;
+	s = Game::getPaddle();
 	glPushMatrix();
 	glTranslatef(s->center.x, s->center.y, s->center.z);
 	w = s->width;
@@ -260,7 +277,7 @@ void render() {
 	//draw all particles here
 	glPushMatrix();
 	glColor3ub(150,160,220);
-	Vec *c = &Game::ball.s.center;
+	Vec *c = &(Game::getBall()->s.center);
 	w = 2;
 	h = 2;
 	glBegin(GL_QUADS);
