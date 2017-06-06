@@ -26,8 +26,23 @@ struct Particle {
 struct ColorBox {
 	int r, g, b;
 };
+
+class BreakableBlock : public Shape {
+	private:
+		int health;
+		ColorBox colors;
+	public:	
+		BreakableBlock(int startingHealth);
+		void dealDamage();
+		int getHealth();
+		ColorBox getColors();
+		void setColors(int red, int green, int blue);
+};
+struct Level {
+	std::list<BreakableBlock*> blocks;
+};
 class Game {
-	private: 
+	private:
 		static Shape paddle;
 		static std::list<Particle*> balls;
 		static std::list<Shape*> allBoxes;
@@ -41,17 +56,6 @@ class Game {
 		static std::list<Shape*>::iterator getLastShapesIterator();
 		static void makeParticle();
 		static void removeParticle(Particle* p);
-};
-
-class BreakableBlock : public Shape {
-	private:
-		int health;
-		ColorBox colors;
-	public:	
-		BreakableBlock();
-		void dealDamage();
-		int getHealth();
-		ColorBox getColors();
-		void setColors(int red, int green, int blue);
+		static Level getLevel(std::string levelName);
 };
 #endif

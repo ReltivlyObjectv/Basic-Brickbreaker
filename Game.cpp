@@ -1,5 +1,7 @@
 #include "Game.h"
 #include <iostream>
+#include <fstream>
+#include <string>
 
 //Initialize Variables
 Shape Game::paddle;
@@ -14,6 +16,8 @@ void Game::initialize(){
 	paddle.center.x = 120 + 5*65;
 	paddle.center.y = PADDLE_BUFFER + (0.5 * PADDLE_HEIGHT) ;
 	allBoxes.push_front(&paddle);
+	//Load first level
+	getLevel("1.level");
 }
 Shape* Game::getPaddle(){
 	return &paddle;
@@ -51,9 +55,79 @@ void Game::removeParticle(Particle* p){
 	std::cout << "Out of bounds - removing particle " << p << std::endl;
 	balls.remove(p);
 }
+Level Game::getLevel(std::string levelName){
+	Level newLevel;
+	std::ifstream levelFile;
+	levelFile.open(levelName.c_str());
+	std::string line;
+	while(getline(levelFile, line)){
+		//# x y width height starting_health
+		if(line[0] == '#'){
+			std::cout << "Skipping comment: " << line << std::endl;
+			continue;
+		}
+		std::cout << "Reading line: " << line << std::endl;
+		std::string x, y, width, height, startingHealth, red, green, blue;
+		int variablePosition = 0;
+		for(int i = 0; i < line.length(); i++){
+			if(line[i] == ' '){
+				variablePosition++;
+				continue;
+			}
+			switch(variablePosition){
+				case 0:
+					//x
+					x.push_back(line[i]);
+					break;
+				case 1:
+					//y
+					y.push_back(line[i]);
+					break;
+				case 2:
+					//width
+					width.push_back(line[i]);
+					break;
+				case 3:
+					//height
+					height.push_back(line[i]);
+					break;
+				case 4:
+					//starting_health
+					startingHealth.push_back(line[i]);
+					break;
+				case 5:
+					//Red
+					red.push_back(line[i]);
+					break;
+				case 6:
+					//Green
+					green.push_back(line[i]);
+					break;
+				case 7:
+					//Blue
+					blue.push_back(line[i]);
+					break;
+				default:
+					//Out of bounds
+					std::cout << "Error reading level: out of bounds" << std::endl;
+			}
+		}
+		//Add information to a block file
+		BreakableBlock* newBlock = new BreakableBlock(std::stoi(startingHealth));
+		newBlock->width = std::stof(width);
+		newBlock->height = std::stof(height);
+		newBlock->center.x = std::stof(x);
+		newBlock->center.y = std::stof(y);
+		newBlock->setColors(std::stoi(red),std::stoi(green),std::stoi(blue));	
+
+		newLevel.blocks.push_back(newBlock);}
+
+	return newLevel;
+}
+
 //Breakable Block Member Functions
-BreakableBlock::BreakableBlock(){
-	health = 0;
+BreakableBlock::BreakableBlock(int startingHealth){
+	health = startingHealth;
 }
 void BreakableBlock::dealDamage(){
 	if(health > 0){
