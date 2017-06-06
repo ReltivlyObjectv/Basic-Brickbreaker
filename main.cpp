@@ -21,7 +21,7 @@
 #define WINDOW_HEIGHT 600
 
 #define MAX_PARTICLES 3
-#define GRAVITY 0.1
+#define GRAVITY 0
 
 #define PADDLE_WIDTH 100
 #define PADDLE_HEIGHT 10
@@ -58,6 +58,7 @@ class Game {
 		static Shape* getPaddle();
 		static std::list<Particle*>::iterator getBallIterator();
 		static void makeParticle();
+		static void removeParticle(Particle* p);
 };
 Shape Game::paddle;
 std::list<Particle*> Game::balls;
@@ -90,6 +91,10 @@ void Game::makeParticle() {
 	p->velocity.y = 4.0;
 	p->velocity.x = 1.0;
 	balls.push_front(p);
+}
+void Game::removeParticle(Particle* p){
+	balls.remove(p);
+	std::cout << "Remove ball, there are now " << getBallCount() << "left.";
 }
 
 //Function prototypes
@@ -234,9 +239,20 @@ void movement() {
 		p->s.center.y += p->velocity.y;
 
 		//check for collision with shapes...
+		
+		//check for collision with edges...
+		if(p->s.center.x <= 0 || p->s.center.x >= WINDOW_WIDTH){
+			p->velocity.x *= -1;
+		}
+		if(p->s.center.y > WINDOW_HEIGHT){
+			p->velocity.y *= -1;
+		}
 		//check for off-screen
 		if (p->s.center.y < 0.0) {
-			std::cout << "off screen" << std::endl;
+			Game::removeParticle(*it);
+			if(Game::getBallCount() < 1){
+				//TODO Lose
+			}
 		}
 	}
 }
