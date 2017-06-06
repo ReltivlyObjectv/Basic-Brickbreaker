@@ -1,6 +1,6 @@
-//modified by:
-//date:
-//purpose:
+//modified by: Christian Russell
+//date: June 05
+//purpose: Brick Breaker (project)
 //
 //cs3350 Summer 2017
 //author: Gordon Griesel
@@ -21,6 +21,10 @@
 
 #define MAX_PARTICLES 1
 #define GRAVITY 0.1
+
+#define PADDLE_WIDTH 100
+#define PADDLE_HEIGHT 10
+#define PADDLE_BUFFER 10
 
 //X Windows variables
 Display *dpy;
@@ -44,7 +48,7 @@ struct Particle {
 };
 
 struct Game {
-	Shape box;
+	Shape paddle;
 	Particle particle;
 	int n;
 };
@@ -68,11 +72,11 @@ int main(void) {
 	Game game;
 	game.n=0;
 
-	//declare a box shape
-	game.box.width = 100;
-	game.box.height = 10;
-	game.box.center.x = 120 + 5*65;
-	game.box.center.y = 500 - 5*60;
+	//declare the paddle
+	game.paddle.width = PADDLE_WIDTH;
+	game.paddle.height = PADDLE_HEIGHT;
+	game.paddle.center.x = 120 + 5*65;
+	game.paddle.center.y = PADDLE_BUFFER + (0.5 * PADDLE_HEIGHT) ;
 
 	//start animation
 	while (!done) {
@@ -145,7 +149,7 @@ void init_opengl(void) {
 void makeParticle(Game *game, int x, int y) {
 	if (game->n >= MAX_PARTICLES){
 		return;
-	}else if(isInShape(game->box, x, y)){
+	}else if(isInShape(game->paddle, x, y)){
 		std::cout << "makeParticle() cursor is inside box" << std::endl;
 		return;
 	}
@@ -236,7 +240,7 @@ void render(Game *game) {
 	//draw box
 	Shape *s;
 	glColor3ub(90,140,90);
-	s = &game->box;
+	s = &game->paddle;
 	glPushMatrix();
 	glTranslatef(s->center.x, s->center.y, s->center.z);
 	w = s->width;
