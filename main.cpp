@@ -186,14 +186,6 @@ void makeParticle(int x, int y) {
 
 void check_mouse(XEvent *e) {
 	static int savex = 0;
-	static int savey = 0;
-	static int n = 0;
-/*
-	game.box.width = 100;
-	game.box.height = 10;
-	game.box.center.x = 120 + 5*65;
-	game.box.center.y = 500 - 5*60;
-*/
 	if (e->type == ButtonRelease) {
 		return;
 	}
@@ -210,11 +202,16 @@ void check_mouse(XEvent *e) {
 		}
 	}
 	//Did the mouse move?
-	if (savex != e->xbutton.x || savey != e->xbutton.y) {
+	if (savex != e->xbutton.x) {
 		savex = e->xbutton.x;
-		savey = e->xbutton.y;
-		if (++n < 10)
-			return;
+		if(savex < (Game::getPaddle()->width)){
+			//Too far to the left
+			savex = Game::getPaddle()->width;
+		}else if(savex > WINDOW_WIDTH - (Game::getPaddle()->width)){
+			//Too far to the right
+			savex = WINDOW_WIDTH - (Game::getPaddle()->width);
+		}
+		Game::getPaddle()->center.x = savex;
 	}
 }
 
