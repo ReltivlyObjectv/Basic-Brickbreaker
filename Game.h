@@ -16,7 +16,6 @@ struct Vec {
 
 struct Shape {
 	float width, height;
-	float radius;
 	Vec center;
 };
 
@@ -24,7 +23,9 @@ struct Particle {
 	Shape s;
 	Vec velocity;
 };
-
+struct ColorBox {
+	int r, g, b;
+};
 class Game {
 	private: 
 		static Shape paddle;
@@ -40,5 +41,17 @@ class Game {
 		static std::list<Shape*>::iterator getLastShapesIterator();
 		static void makeParticle();
 		static void removeParticle(Particle* p);
+};
+
+class BreakableBlock : public Shape {
+	private:
+		int health;
+		ColorBox colors;
+	public:	
+		BreakableBlock();
+		void dealDamage();
+		int getHealth();
+		ColorBox getColors();
+		void setColors(int red, int green, int blue);
 };
 #endif

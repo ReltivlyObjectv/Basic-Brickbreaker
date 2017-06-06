@@ -6,7 +6,7 @@ Shape Game::paddle;
 std::list<Particle*> Game::balls;
 std::list<Shape*> Game::allBoxes;
 
-//Member Functions
+//Game Member Functions
 void Game::initialize(){
 	//declare the paddle
 	paddle.width = PADDLE_WIDTH;
@@ -50,4 +50,24 @@ void Game::makeParticle() {
 void Game::removeParticle(Particle* p){
 	std::cout << "Out of bounds - removing particle " << p << std::endl;
 	balls.remove(p);
+}
+//Breakable Block Member Functions
+BreakableBlock::BreakableBlock(){
+	health = 0;
+}
+void BreakableBlock::dealDamage(){
+	if(health > 0){
+		health--;
+	}
+}
+int BreakableBlock::getHealth(){
+	return health;
+}
+ColorBox BreakableBlock::getColors(){
+	return colors;
+}
+void BreakableBlock::setColors(int red, int green, int blue){
+	colors.r = red;
+	colors.g = green;
+	colors.b = blue;
 }
